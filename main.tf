@@ -61,7 +61,11 @@ resource "azurerm_app_service" "as" {
   location = azurerm_resource_group.rg.location
   name = var.app-service-name
   resource_group_name = azurerm_resource_group.rg.name
-  site_config = local.site_config
+  site_config = [{
+    always_on        = true
+    linux_fx_version = "JAVA|8-jre8"
+    min_tls_verion   = "1.2"
+  }]
   app_settings = local.listapp_application_settings
   identity {
     type = "SystemAssigned"
