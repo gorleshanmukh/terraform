@@ -61,10 +61,10 @@ resource "azurerm_app_service" "as" {
   location = azurerm_resource_group.rg.location
   name = var.app-service-name
   resource_group_name = azurerm_resource_group.rg.name
-  site_config = {
-    always_on        = true
+  site_config {
     linux_fx_version = "JAVA|8-jre8"
-    min_tls_verion   = "1.2"
+    always_on = true
+    scm_type = "GitHub"
   }
   app_settings = local.listapp_application_settings
   identity {
