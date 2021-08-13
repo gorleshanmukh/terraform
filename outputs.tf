@@ -7,7 +7,7 @@ output "app_service_default_hostname" {
 }
 
 output "sql_server_id" {
-  value = azurerm_sql_server.sqldb.id
+  value = azurerm_sql_server.sqlserver.id
 }
 
 output "kv_id" {

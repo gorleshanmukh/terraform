@@ -44,19 +44,9 @@ resource "azurerm_key_vault_access_policy" "user" {
   key_vault_id = azurerm_key_vault.keyvault.id
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
-  key_permissions = [
-    "get",
-  ]
-  secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete",
-    "purge"
-  ]
-  storage_permissions = [
-    "get",
-  ]
+  key_permissions = local.key_permissions
+  secret_permissions = local.secret_permissions
+  storage_permissions = local.storage_permissions
 }
 
 resource "azurerm_key_vault_secret" "dbpassword" {
@@ -71,10 +61,7 @@ resource "azurerm_app_service" "as" {
   location = azurerm_resource_group.rg.location
   name = var.app-service-name
   resource_group_name = azurerm_resource_group.rg.name
-  app_settings = {
-    "dbpassword" = "@Microsoft.KeyVault(VaultName=${var.keyvault-name};SecretName=dbpassword;SecretVersion=${azurerm_key_vault_secret.dbpassword.version})",
-    "dbusername" = "user"
-  }
+  app_settings = local.listapp_application_settings
   identity {
     type = "SystemAssigned"
   }
@@ -85,22 +72,13 @@ resource "azurerm_key_vault_access_policy" "myapp" {
   key_vault_id = azurerm_key_vault.keyvault.id
   object_id = azurerm_app_service.as.identity.0.principal_id
   tenant_id = data.azurerm_client_config.current.tenant_id
-  key_permissions = [
-    "get",
-  ]
-  secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete"
-  ]
-  storage_permissions = [
-    "get",
-  ]
+  key_permissions = local.key_permissions
+  secret_permissions = local.secret_permissions
+  storage_permissions = local.storage_permissions
   depends_on = [azurerm_key_vault_access_policy.user]
 }
 
-resource "azurerm_sql_server" "sqldb" {
+resource "azurerm_sql_server" "sqlserver" {
   administrator_login = var.sql-admin-login
   administrator_login_password = var.sql-admin-password
   location = azurerm_resource_group.rg.location
@@ -113,5 +91,5 @@ resource "azurerm_sql_database" db {
   location = azurerm_resource_group.rg.location
   name = var.sql-database-name
   resource_group_name = azurerm_resource_group.rg.name
-  server_name = azurerm_sql_server.sqldb.name
+  server_name = azurerm_sql_server.sqlserver.name
 }
