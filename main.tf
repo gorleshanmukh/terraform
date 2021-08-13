@@ -51,7 +51,8 @@ resource "azurerm_key_vault_access_policy" "user" {
     "get",
     "list",
     "set",
-    "delete"
+    "delete",
+    "purge"
   ]
   storage_permissions = [
     "get",
