@@ -12,6 +12,6 @@ terraform {
 }
 
 resource "azurerm_resource_group" "rg-test-gorle" {
-  name     = "rg-hello-azure"
+  name     = "rg-hello-gorle"
   location = "eastus"
 }
