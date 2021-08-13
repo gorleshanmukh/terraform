@@ -38,31 +38,31 @@ resource "azurerm_key_vault" keyvault {
   sku_name = "standard"
   tenant_id = data.azurerm_client_config.current.tenant_id
   purge_protection_enabled = false
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+}
 
-    key_permissions = [
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "list",
-      "set",
-      "delete"
-    ]
-
-    storage_permissions = [
-      "get",
-    ]
-  }
+resource "azurerm_key_vault_access_policy" "user" {
+  key_vault_id = azurerm_key_vault.keyvault.id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+  key_permissions = [
+    "get",
+  ]
+  secret_permissions = [
+    "get",
+    "list",
+    "set",
+    "delete"
+  ]
+  storage_permissions = [
+    "get",
+  ]
 }
 
 resource "azurerm_key_vault_secret" "dbpassword" {
   name = "dbpassword"
   value = var.sql-admin-password
   key_vault_id = azurerm_key_vault.keyvault.id
+  depends_on = [azurerm_key_vault_access_policy.user]
 }
 
 resource "azurerm_app_service" "as" {
@@ -77,6 +77,7 @@ resource "azurerm_app_service" "as" {
   identity {
     type = "SystemAssigned"
   }
+  depends_on = [azurerm_key_vault_access_policy.user]
 }
 
 resource "azurerm_key_vault_access_policy" "myapp" {
@@ -86,7 +87,6 @@ resource "azurerm_key_vault_access_policy" "myapp" {
   key_permissions = [
     "get",
   ]
-
   secret_permissions = [
     "get",
     "list",
@@ -96,6 +96,7 @@ resource "azurerm_key_vault_access_policy" "myapp" {
   storage_permissions = [
     "get",
   ]
+  depends_on = [azurerm_key_vault_access_policy.user]
 }
 
 resource "azurerm_sql_server" "sqldb" {
