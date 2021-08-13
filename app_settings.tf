@@ -1,6 +1,7 @@
 locals {
   listapp_application_settings = {
     "dbpassword" = "@Microsoft.KeyVault(VaultName=${var.keyvault-name};SecretName=dbpassword;SecretVersion=${azurerm_key_vault_secret.dbpassword.version})",
+    "dbpassword" = "@Microsoft.KeyVault(VaultName=${var.keyvault-name};SecretName=onemoresecret;SecretVersion=)",
     "dbusername" = "user"
   }
   key_permissions = ["get"]
