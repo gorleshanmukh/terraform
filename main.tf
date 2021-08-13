@@ -101,16 +101,10 @@ resource "azurerm_key_vault_secret" "dbusername" {
   depends_on = [azurerm_key_vault_access_policy.user]
 }
 
-resource "azurerm_key_vault_secret" "dbname" {
-  name = "listapp-db-name"
-  value = azurerm_sql_database.db.name
+resource "azurerm_key_vault_secret" "dbserverurl" {
+  name = "listapp-db-url"
+  value = "jdbc:sqlserver://${azurerm_sql_server.sqlserver.fully_qualified_domain_name}:1433;database=${azurerm_sql_database.db.name};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
   key_vault_id = azurerm_key_vault.keyvault.id
   depends_on = [azurerm_key_vault_access_policy.user]
 }
 
-resource "azurerm_key_vault_secret" "dbserver" {
-  name = "listapp-db-server"
-  value = azurerm_sql_server.sqlserver.fully_qualified_domain_name
-  key_vault_id = azurerm_key_vault.keyvault.id
-  depends_on = [azurerm_key_vault_access_policy.user]
-}
