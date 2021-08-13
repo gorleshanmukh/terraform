@@ -50,7 +50,7 @@ resource "azurerm_key_vault_access_policy" "user" {
 }
 
 resource "azurerm_key_vault_secret" "dbpassword" {
-  name = "dbpassword"
+  name = "listapp-db-password"
   value = var.sql-admin-password
   key_vault_id = azurerm_key_vault.keyvault.id
   depends_on = [azurerm_key_vault_access_policy.user]
@@ -92,4 +92,25 @@ resource "azurerm_sql_database" db {
   name = var.sql-database-name
   resource_group_name = azurerm_resource_group.rg.name
   server_name = azurerm_sql_server.sqlserver.name
+}
+
+resource "azurerm_key_vault_secret" "dbusername" {
+  name = "listapp-db-username"
+  value = azurerm_sql_server.sqlserver.administrator_login
+  key_vault_id = azurerm_key_vault.keyvault.id
+  depends_on = [azurerm_key_vault_access_policy.user]
+}
+
+resource "azurerm_key_vault_secret" "dbname" {
+  name = "listapp-db-name"
+  value = azurerm_sql_database.db.name
+  key_vault_id = azurerm_key_vault.keyvault.id
+  depends_on = [azurerm_key_vault_access_policy.user]
+}
+
+resource "azurerm_key_vault_secret" "dbserver" {
+  name = "listapp-db-server"
+  value = azurerm_sql_server.sqlserver.fully_qualified_domain_name
+  key_vault_id = azurerm_key_vault.keyvault.id
+  depends_on = [azurerm_key_vault_access_policy.user]
 }
