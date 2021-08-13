@@ -25,6 +25,7 @@ resource "azurerm_app_service_plan" "asp" {
   name = var.app-service-plan
   location = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  kind = "linux"
   sku {
     size = "S1"
     tier = "Standard"
