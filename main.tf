@@ -103,7 +103,7 @@ resource "azurerm_sql_database" db {
   server_name = azurerm_sql_server.sqlserver.name
 }
 
-resource "azurerm_mysql_firewall_rule" "example" {
+resource "azurerm_sql_firewall_rule" "example" {
   name                = "azure services"
   resource_group_name = azurerm_resource_group.rg.name
   server_name         = azurerm_sql_server.sqlserver.name
