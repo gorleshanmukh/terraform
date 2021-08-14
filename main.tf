@@ -66,6 +66,9 @@ resource "azurerm_app_service" "as" {
   site_config {
     linux_fx_version = "JAVA|8-jre8"
     always_on = true
+    cors {
+      allowed_origins = ["*"]
+    }
   }
   app_settings = local.listapp_application_settings
   identity {
@@ -98,6 +101,14 @@ resource "azurerm_sql_database" db {
   name = var.sql-database-name
   resource_group_name = azurerm_resource_group.rg.name
   server_name = azurerm_sql_server.sqlserver.name
+}
+
+resource "azurerm_mysql_firewall_rule" "example" {
+  name                = "azure services"
+  resource_group_name = azurerm_resource_group.rg.name
+  server_name         = azurerm_sql_server.sqlserver.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
 }
 
 resource "azurerm_key_vault_secret" "dbusername" {
