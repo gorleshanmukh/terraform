@@ -15,113 +15,53 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "rg" {
   location = var.location
-  name = var.resource-group-name
+  name = var.resource_group_name
   tags = {
     "environment" : var.environment
   }
 }
 
-resource "azurerm_app_service_plan" "asp" {
-  name = var.app-service-plan
+module "keyvault" {
+  source = "./azure-modules/keyvault"
+  keyvault_name = var.keyvault_name
   location = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  kind = "linux"
-  reserved = true
-  sku {
-    size = "S1"
-    tier = "Standard"
-  }
-}
-
-resource "azurerm_key_vault" keyvault {
-  location = azurerm_resource_group.rg.location
-  name = var.keyvault-name
-  resource_group_name = azurerm_resource_group.rg.name
-  sku_name = "standard"
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  purge_protection_enabled = false
-}
-
-resource "azurerm_key_vault_access_policy" "user" {
-  key_vault_id = azurerm_key_vault.keyvault.id
+  rg_name = azurerm_resource_group.rg.name
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
-  key_permissions = local.key_permissions
+  purge_protect = false
+  sku_name = "standard"
   secret_permissions = local.secret_permissions
+  key_permissions = local.key_permissions
   storage_permissions = local.storage_permissions
 }
 
-resource "azurerm_key_vault_secret" "dbpassword" {
-  name = "listapp-db-password"
-  value = var.sql-admin-password
-  key_vault_id = azurerm_key_vault.keyvault.id
-  depends_on = [azurerm_key_vault_access_policy.user]
-}
-
-resource "azurerm_app_service" "as" {
-  app_service_plan_id = azurerm_app_service_plan.asp.id
+module "db" {
+  source = "./azure-modules/sql-db"
   location = azurerm_resource_group.rg.location
-  name = var.app-service-name
   resource_group_name = azurerm_resource_group.rg.name
-  site_config {
-    linux_fx_version = "JAVA|8-jre8"
-    always_on = true
-    cors {
-      allowed_origins = ["*"]
-    }
-  }
-  app_settings = local.listapp_application_settings
-  identity {
-    type = "SystemAssigned"
-  }
-  depends_on = [azurerm_key_vault_access_policy.user]
+  sql_server_name = var.sql_server_name
+  sql_admin_login = var.sql_admin_login
+  sql_admin_password = var.sql_admin_password
+  sql_database_name = var.sql_database_name
+  keyvault_id = module.keyvault.kv_details.id
+  depends_on = [module.keyvault.kv_userpolicy_details]
 }
 
-resource "azurerm_key_vault_access_policy" "myapp" {
-  key_vault_id = azurerm_key_vault.keyvault.id
-  object_id = azurerm_app_service.as.identity.0.principal_id
+module "appservice" {
+  source = "./azure-modules/app-service"
+  app_service_name = var.app_service_name
+  app_service_plan_name = var.app_service_plan
+  location = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   tenant_id = data.azurerm_client_config.current.tenant_id
-  key_permissions = local.key_permissions
+  kind = local.list_app_server_kind
+  keyvault_id =  module.keyvault.kv_details.id
+  app_settings = local.listapp_application_settings
+  server_type = local.list_app_server_type
+  cors = local.cors
   secret_permissions = local.secret_permissions
+  key_permissions = local.key_permissions
   storage_permissions = local.storage_permissions
-  depends_on = [azurerm_key_vault_access_policy.user]
+  depends_on = [module.keyvault.kv_userpolicy_details]
+  always_on = local.list_app_always_on
 }
-
-resource "azurerm_sql_server" "sqlserver" {
-  administrator_login = var.sql-admin-login
-  administrator_login_password = var.sql-admin-password
-  location = azurerm_resource_group.rg.location
-  name = var.sql-server-name
-  resource_group_name = azurerm_resource_group.rg.name
-  version = "12.0"
-}
-
-resource "azurerm_sql_database" db {
-  location = azurerm_resource_group.rg.location
-  name = var.sql-database-name
-  resource_group_name = azurerm_resource_group.rg.name
-  server_name = azurerm_sql_server.sqlserver.name
-}
-
-resource "azurerm_sql_firewall_rule" "example" {
-  name                = "azure services"
-  resource_group_name = azurerm_resource_group.rg.name
-  server_name         = azurerm_sql_server.sqlserver.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
-}
-
-resource "azurerm_key_vault_secret" "dbusername" {
-  name = "listapp-db-username"
-  value = azurerm_sql_server.sqlserver.administrator_login
-  key_vault_id = azurerm_key_vault.keyvault.id
-  depends_on = [azurerm_key_vault_access_policy.user]
-}
-
-resource "azurerm_key_vault_secret" "dbserverurl" {
-  name = "listapp-db-url"
-  value = "jdbc:sqlserver://${azurerm_sql_server.sqlserver.fully_qualified_domain_name}:1433;database=${azurerm_sql_database.db.name};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
-  key_vault_id = azurerm_key_vault.keyvault.id
-  depends_on = [azurerm_key_vault_access_policy.user]
-}
-
