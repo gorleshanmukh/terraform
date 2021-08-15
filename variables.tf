@@ -1,49 +1,40 @@
 variable "environment" {
   type=string
-  description = ":)"
+  description = "environment name"
 }
-
-variable "resource-group-name" {
+variable "resource_group_name" {
   type=string
-  description = ":)"
+  description = "resource group name"
 }
-
 variable "location" {
   type=string
-  description = ":)"
+  description = "location"
 }
-
-variable "app-service-plan" {
+variable "app_service_plan" {
   type=string
-  description = ":)"
+  description="app_service_plan"
 }
-
-variable "keyvault-name" {
+variable "keyvault_name" {
   type=string
-  description = ":)"
+  description="keyvault_name"
 }
-
-variable "sql-admin-password" {
+variable "app_service_name" {
   type=string
-  description = ":)"
+  description="app_service_name"
 }
-
-variable "app-service-name" {
+variable "sql_server_name" {
   type=string
-  description = ":)"
+  description="sql_server_name"
 }
-
-variable "sql-admin-login" {
+variable "sql_admin_login" {
   type=string
-  description = ":)"
+  description="sql_admin_login"
 }
-
-variable "sql-server-name" {
+variable "sql_admin_password" {
   type=string
-  description = ":)"
+  description="sql_admin_password"
 }
-
-variable "sql-database-name" {
+variable "sql_database_name" {
   type=string
-  description = ":)"
+  description="sql_database_name"
 }
