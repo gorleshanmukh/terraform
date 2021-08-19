@@ -1,8 +1,6 @@
-name: Terraform Plan
+name: Terraform Plan Prod
 
 on:
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -28,4 +26,4 @@ jobs:
 #        run: terraform fmt -check
 
       - name: Terraform Plan
-        run: terraform plan -var-file="./tfvars/test.tfvars"
+        run: terraform plan -var-file="./tfvars/prod.tfvars"
